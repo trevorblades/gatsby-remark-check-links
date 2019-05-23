@@ -77,7 +77,7 @@ module.exports = async ({
     if (linksForSlug.length) {
       const brokenLinks = linksForSlug.filter(link => {
         const hashIndex = link.indexOf('#');
-        const id = link.slice(hashIndex);
+        const id = link.slice(hashIndex + 1);
         const key = link.startsWith('/') ? link.slice(0, hashIndex) : slug;
         const headings = headingsMap[key];
         return !headings || !headings.includes(id);
