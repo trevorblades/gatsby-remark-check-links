@@ -125,6 +125,8 @@ module.exports = async ({
     }
 
     console.error(message);
+  } else {
+    console.info('No broken links found');
   }
 
   return markdownAST;
