@@ -1,8 +1,22 @@
 const visit = require('unist-util-visit');
 
-const pattern = /^(\/[\w-/]*)?#[\w-]+$/;
-function visitsCacheKey(node) {
+function getCacheKey(node) {
   return `remark-check-links-${node.internal.contentDigest}`;
+}
+
+function getHeadingsMapKey(link, slug) {
+  let key = link;
+  const hashIndex = link.indexOf('#');
+  const hasHash = hashIndex !== -1;
+  if (hasHash) {
+    key = link.startsWith('#') ? slug : link.slice(0, hashIndex);
+  }
+
+  return {
+    key,
+    hasHash,
+    hashIndex
+  };
 }
 
 module.exports = async ({
@@ -27,14 +41,14 @@ module.exports = async ({
       return;
     }
 
-    if (pattern.test(node.url)) {
+    if (node.url.startsWith('#') || /^\.{0,2}\//.test(node.url)) {
       links.push(node.url);
     }
   });
 
   const {slug} = markdownNode.fields;
   const parent = await getNode(markdownNode.parent);
-  cache.set(visitsCacheKey(parent), {
+  cache.set(getCacheKey(parent), {
     slug,
     links,
     headings
@@ -45,7 +59,7 @@ module.exports = async ({
   const headingsMap = {};
   for (const file of files) {
     if (/^mdx?$/.test(file.extension)) {
-      const key = visitsCacheKey(file);
+      const key = getCacheKey(file);
       const visited = await cache.get(key);
       if (visited) {
         linksMap[visited.slug] = visited.links;
@@ -76,11 +90,19 @@ module.exports = async ({
     const linksForSlug = linksMap[slug];
     if (linksForSlug.length) {
       const brokenLinks = linksForSlug.filter(link => {
-        const hashIndex = link.indexOf('#');
-        const id = link.slice(hashIndex + 1);
-        const key = link.startsWith('/') ? link.slice(0, hashIndex) : slug;
+        // return true for broken links
+        const {key, hasHash, hashIndex} = getHeadingsMapKey(link, slug);
         const headings = headingsMap[key];
-        return !headings || !headings.includes(id);
+        if (headings) {
+          if (hasHash) {
+            const id = link.slice(hashIndex + 1);
+            return !headings.includes(id);
+          }
+
+          return false;
+        }
+
+        return true;
       });
 
       const brokenLinkCount = brokenLinks.length;
