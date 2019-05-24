@@ -19,14 +19,10 @@ function getHeadingsMapKey(link, slug) {
   };
 }
 
-module.exports = async ({
-  markdownAST,
-  markdownNode,
-  files,
-  getNode,
-  cache,
-  getCache
-}) => {
+module.exports = async (
+  {markdownAST, markdownNode, files, getNode, cache, getCache},
+  {exceptions = []} = {}
+) => {
   if (!markdownNode.fields) {
     // let the file pass if it has no fields
     return markdownAST;
@@ -92,11 +88,15 @@ module.exports = async ({
       const brokenLinks = linksForSlug.filter(link => {
         // return true for broken links
         const {key, hasHash, hashIndex} = getHeadingsMapKey(link, slug);
+        if (exceptions.includes(key)) {
+          return false;
+        }
+
         const headings = headingsMap[key];
         if (headings) {
           if (hasHash) {
             const id = link.slice(hashIndex + 1);
-            return !headings.includes(id);
+            return !exceptions.includes(id) && !headings.includes(id);
           }
 
           return false;

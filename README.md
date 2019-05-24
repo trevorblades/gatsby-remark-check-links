@@ -27,6 +27,30 @@ module.exports = {
 };
 ```
 
+## Making exceptions
+
+If you need to exempt some pages from registering as broken links, you can pass an `exceptions` option to the plugin. Provide an array of page slugs, and any links pointing to it or a heading on its page will not be judged for broken-ness.
+
+```js
+// gatsby-config.js
+module.exports = {
+  plugins: [
+    {
+      resolve: 'gatsby-transformer-remark',
+      plugins: [
+        'gatsby-remark-autolink-headers',
+        {
+          resolve: 'gatsby-remark-check-links',
+          options: {
+            exceptions: '/page/with/false-positives/'
+          }
+        }
+      ]
+    }
+  ]
+};
+```
+
 ## Caveats
 
 Once a markdown page has been cached by Gatsby, you won't see any output about its broken links until the file changes or your cache gets cleared. If you want to see link check output for *all* files every time you run `npm start`, you can set up your npm script like this:
