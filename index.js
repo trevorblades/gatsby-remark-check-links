@@ -4,12 +4,12 @@ function getCacheKey(node) {
   return `remark-check-links-${node.internal.contentDigest}`;
 }
 
-function getHeadingsMapKey(link, slug) {
+function getHeadingsMapKey(link, path) {
   let key = link;
   const hashIndex = link.indexOf('#');
   const hasHash = hashIndex !== -1;
   if (hasHash) {
-    key = link.startsWith('#') ? slug : link.slice(0, hashIndex);
+    key = link.startsWith('#') ? path : link.slice(0, hashIndex);
   }
 
   return {
@@ -19,8 +19,12 @@ function getHeadingsMapKey(link, slug) {
   };
 }
 
+function withPathPrefix(url, pathPrefix) {
+  return (pathPrefix + url).replace(/\/\//, '/');
+}
+
 module.exports = async (
-  {markdownAST, markdownNode, files, getNode, cache, getCache},
+  {markdownAST, markdownNode, files, getNode, cache, getCache, pathPrefix},
   {exceptions = []} = {}
 ) => {
   if (!markdownNode.fields) {
@@ -42,10 +46,9 @@ module.exports = async (
     }
   });
 
-  const {slug} = markdownNode.fields;
   const parent = await getNode(markdownNode.parent);
   cache.set(getCacheKey(parent), {
-    slug,
+    path: withPathPrefix(markdownNode.fields.slug, pathPrefix),
     links,
     headings
   });
@@ -58,8 +61,8 @@ module.exports = async (
       const key = getCacheKey(file);
       const visited = await cache.get(key);
       if (visited) {
-        linksMap[visited.slug] = visited.links;
-        headingsMap[visited.slug] = visited.headings;
+        linksMap[visited.path] = visited.links;
+        headingsMap[visited.path] = visited.headings;
         continue;
       }
 
@@ -70,8 +73,8 @@ module.exports = async (
         const mdxCache = getCache('gatsby-mdx');
         const mdxVisited = await mdxCache.get(key);
         if (mdxVisited) {
-          linksMap[mdxVisited.slug] = mdxVisited.links;
-          headingsMap[mdxVisited.slug] = mdxVisited.headings;
+          linksMap[mdxVisited.path] = mdxVisited.links;
+          headingsMap[mdxVisited.path] = mdxVisited.headings;
           continue;
         }
       }
@@ -82,12 +85,12 @@ module.exports = async (
   }
 
   let totalBrokenLinks = 0;
-  for (const slug in linksMap) {
-    const linksForSlug = linksMap[slug];
-    if (linksForSlug.length) {
-      const brokenLinks = linksForSlug.filter(link => {
+  for (const path in linksMap) {
+    const linksForPath = linksMap[path];
+    if (linksForPath.length) {
+      const brokenLinks = linksForPath.filter(link => {
         // return true for broken links
-        const {key, hasHash, hashIndex} = getHeadingsMapKey(link, slug);
+        const {key, hasHash, hashIndex} = getHeadingsMapKey(link, path);
         if (exceptions.includes(key)) {
           return false;
         }
@@ -108,7 +111,7 @@ module.exports = async (
       const brokenLinkCount = brokenLinks.length;
       totalBrokenLinks += brokenLinkCount;
       if (brokenLinkCount) {
-        console.warn(`${brokenLinkCount} broken links found on ${slug}`);
+        console.warn(`${brokenLinkCount} broken links found on ${path}`);
         for (const link of brokenLinks) {
           console.warn(`- ${link}`);
         }
