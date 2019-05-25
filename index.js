@@ -19,8 +19,11 @@ function getHeadingsMapKey(link, path) {
   };
 }
 
-function withPathPrefix(url, pathPrefix) {
-  return (pathPrefix + url).replace(/\/\//, '/');
+function createPathPrefixer(pathPrefix) {
+  return function withPathPrefix(url) {
+    const prefixed = pathPrefix + url;
+    return prefixed.replace(/\/\//, '/');
+  };
 }
 
 module.exports = async (
@@ -46,9 +49,10 @@ module.exports = async (
     }
   });
 
+  const withPathPrefix = createPathPrefixer(pathPrefix);
   const parent = await getNode(markdownNode.parent);
   cache.set(getCacheKey(parent), {
-    path: withPathPrefix(markdownNode.fields.slug, pathPrefix),
+    path: withPathPrefix(markdownNode.fields.slug),
     links,
     headings
   });
@@ -85,13 +89,14 @@ module.exports = async (
   }
 
   let totalBrokenLinks = 0;
+  const prefixedExtensions = exceptions.map(withPathPrefix);
   for (const path in linksMap) {
     const linksForPath = linksMap[path];
     if (linksForPath.length) {
       const brokenLinks = linksForPath.filter(link => {
         // return true for broken links
         const {key, hasHash, hashIndex} = getHeadingsMapKey(link, path);
-        if (exceptions.some(exception => withPathPrefix(exception) === key)) {
+        if (prefixedExtensions.includes(key)) {
           return false;
         }
 
@@ -99,7 +104,7 @@ module.exports = async (
         if (headings) {
           if (hasHash) {
             const id = link.slice(hashIndex + 1);
-            return !exceptions.includes(id) && !headings.includes(id);
+            return !prefixedExtensions.includes(id) && !headings.includes(id);
           }
 
           return false;
