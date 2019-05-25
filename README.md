@@ -7,7 +7,7 @@ It will provide output about the broken links in the terminal when your site bui
 ## Installation
 
 ```bash
-npm install gatsby-remark-check-links
+$ npm install gatsby-remark-check-links
 ```
 
 ## Usage
