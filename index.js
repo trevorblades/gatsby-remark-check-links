@@ -91,7 +91,7 @@ module.exports = async (
       const brokenLinks = linksForPath.filter(link => {
         // return true for broken links
         const {key, hasHash, hashIndex} = getHeadingsMapKey(link, path);
-        if (exceptions.includes(key)) {
+        if (exceptions.some(exception => withPathPrefix(exception) === key)) {
           return false;
         }
 
