@@ -94,7 +94,7 @@ module.exports = async (
     const linksForPath = linksMap[path];
     if (linksForPath.length) {
       const brokenLinks = linksForPath.filter(link => {
-        // return true for broken links
+        // return true for broken links, false = pass
         const {key, hasHash, hashIndex} = getHeadingsMapKey(link, path);
         if (prefixedExtensions.includes(key)) {
           return false;
