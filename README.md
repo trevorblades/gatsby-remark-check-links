@@ -46,8 +46,7 @@ module.exports = {
             resolve: 'gatsby-remark-check-links',
             options: {
               exceptions: [
-                '/page/with/false-positives/',
-                '/all-links/on-this-page/will-pass'
+                '/page/with/false-positives/'
               ]
             }
           }
