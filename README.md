@@ -18,10 +18,12 @@ module.exports = {
   plugins: [
     {
       resolve: 'gatsby-transformer-remark',
-      plugins: [
-        'gatsby-remark-autolink-headers',
-        'gatsby-remark-check-links'
-      ]
+      options: {
+        plugins: [
+          'gatsby-remark-autolink-headers',
+          'gatsby-remark-check-links'
+        ]
+      }
     }
   ]
 };
@@ -37,15 +39,17 @@ module.exports = {
   plugins: [
     {
       resolve: 'gatsby-transformer-remark',
-      plugins: [
-        'gatsby-remark-autolink-headers',
-        {
-          resolve: 'gatsby-remark-check-links',
-          options: {
-            exceptions: '/page/with/false-positives/'
+      options: {
+        plugins: [
+          'gatsby-remark-autolink-headers',
+          {
+            resolve: 'gatsby-remark-check-links',
+            options: {
+              exceptions: '/page/with/false-positives/'
+            }
           }
-        }
-      ]
+        ]
+      }
     }
   ]
 };
