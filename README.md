@@ -69,4 +69,4 @@ Once a markdown page has been cached by Gatsby, you won't see any output about i
 
 ## License
 
-MIT
+[MIT](./LICENSE)
