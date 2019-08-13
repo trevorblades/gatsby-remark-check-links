@@ -1,7 +1,7 @@
 const visit = require('unist-util-visit');
 
 function getCacheKey(node) {
-  return `remark-check-links-${node.internal.contentDigest}`;
+  return `remark-check-links-${node.id}-${node.internal.contentDigest}`;
 }
 
 function getHeadingsMapKey(link, path) {
@@ -61,9 +61,13 @@ module.exports = async (
   const linksMap = {};
   const headingsMap = {};
   for (const file of files) {
-    if (/^mdx?$/.test(file.extension)) {
+    if (
+      /^mdx?$/.test(file.extension) &&
+      file.relativePath !== 'docs/README.md'
+    ) {
       const key = getCacheKey(file);
       const visited = await cache.get(key);
+
       if (visited) {
         linksMap[visited.path] = visited.links;
         headingsMap[visited.path] = visited.headings;
@@ -74,7 +78,7 @@ module.exports = async (
         // the cache provided to `gatsby-mdx` has its own namespace, and it
         // doesn't have access to `getCache`, so we have to check to see if
         // those files have been visited here.
-        const mdxCache = getCache('gatsby-mdx');
+        const mdxCache = getCache('gatsby-plugin-mdx');
         const mdxVisited = await mdxCache.get(key);
         if (mdxVisited) {
           linksMap[mdxVisited.path] = mdxVisited.links;
@@ -89,14 +93,14 @@ module.exports = async (
   }
 
   let totalBrokenLinks = 0;
-  const prefixedExtensions = exceptions.map(withPathPrefix);
+  const prefixedExceptions = exceptions.map(withPathPrefix);
   for (const path in linksMap) {
     const linksForPath = linksMap[path];
     if (linksForPath.length) {
       const brokenLinks = linksForPath.filter(link => {
         // return true for broken links, false = pass
         const {key, hasHash, hashIndex} = getHeadingsMapKey(link, path);
-        if (prefixedExtensions.includes(key)) {
+        if (prefixedExceptions.includes(key)) {
           return false;
         }
 
@@ -104,7 +108,7 @@ module.exports = async (
         if (headings) {
           if (hasHash) {
             const id = link.slice(hashIndex + 1);
-            return !prefixedExtensions.includes(id) && !headings.includes(id);
+            return !prefixedExceptions.includes(id) && !headings.includes(id);
           }
 
           return false;
