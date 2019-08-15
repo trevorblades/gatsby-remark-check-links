@@ -20,6 +20,8 @@ npm install gatsby-remark-check-links
 
 ## Usage
 
+Add the plugin to your `gatsby-transformer-remark` options or the `remarkPlugins` key in the `gatsby-plugin-mdx` options, if you're using that.
+
 ```js
 // gatsby-config.js
 module.exports = {
@@ -35,6 +37,21 @@ module.exports = {
     }
   ]
 };
+```
+
+If broken links are found, you will see feedback in the console. If you stop seeing console output, you might need to [clear your cache](#caveats). The link checker console output should look something like this:
+
+```
+3 broken links found on /examples/react/
+- /foo/bar/
+- /intro/#some-hash
+- /intro/#some-other-hash
+⠀
+2 broken links found on /intro/
+- /foo/baz/
+- /examples/ract/
+⠀
+5 broken links found
 ```
 
 ## Options
