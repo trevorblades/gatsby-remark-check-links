@@ -4,6 +4,14 @@ A sub-plugin for `gatsby-transformer-remark` that detects broken links to pages 
 
 It will provide output about the broken links in the terminal when your site builds and as you make changes to pages. In production, your build will break if there are any broken links.
 
+- [Installation](#installation)
+- [Usage](#usage)
+- [Options](#options)
+  - [`ignore`](#ignore)
+  - [`exceptions`](#exceptions)
+- [Caveats](#caveats)
+- [License](#license)
+
 ## Installation
 
 ```bash
@@ -29,9 +37,9 @@ module.exports = {
 };
 ```
 
-## Making exceptions
+## Options
 
-If you need to exempt some pages from registering as broken links, you can pass an `exceptions` option to the plugin. Provide an array of page slugs, and any links pointing to it or a heading on its page will not be judged for broken-ness.
+If you need to disable link checking for certain pages, you can supply options to the plugin. There are two options: `ignore` and `exceptions`, and while they both expect an array of paths, they work differently.
 
 ```js
 // gatsby-config.js
@@ -45,8 +53,13 @@ module.exports = {
           {
             resolve: 'gatsby-remark-check-links',
             options: {
+              ignore: [
+                '/foo/bar',
+                '/generated/docs/'
+              ],
               exceptions: [
-                '/page/with/false-positives/'
+                '/bar/baz/',
+                '/dynamic/headings/'
               ]
             }
           }
@@ -56,6 +69,14 @@ module.exports = {
   ]
 };
 ```
+
+### `ignore`
+
+Paths passed to `ignore` will **not** have their content checked for broken links. This is useful if you have auto-generated pages where you're certain the links work, but it would be a nusance to correct their formatting every time a new set of pages is generated.
+
+### `exceptions`
+
+Paths passed to `exceptions` will ensure that any links from other pages to these paths or hashes within them will **not** count as broken. This is useful if the linked page is created programatically, or if the final rendered version of a markdown page contains headings that aren't available during the MDAST-transforming stage of the build (it could be using some fancy MDX component, for example.)
 
 ## Caveats
 
