@@ -28,7 +28,7 @@ function createPathPrefixer(pathPrefix) {
 
 module.exports = async (
   {markdownAST, markdownNode, files, getNode, cache, getCache, pathPrefix},
-  {exceptions = []} = {}
+  {exceptions = [], ignore = []} = {}
 ) => {
   if (!markdownNode.fields) {
     // let the file pass if it has no fields
@@ -93,8 +93,13 @@ module.exports = async (
   }
 
   let totalBrokenLinks = 0;
+  const prefixedIgnore = ignore.map(withPathPrefix);
   const prefixedExceptions = exceptions.map(withPathPrefix);
   for (const path in linksMap) {
+    if (prefixedIgnore.includes(path)) {
+      continue;
+    }
+
     const linksForPath = linksMap[path];
     if (linksForPath.length) {
       const brokenLinks = linksForPath.filter(link => {
