@@ -97,6 +97,7 @@ module.exports = async (
   const prefixedExceptions = exceptions.map(withPathPrefix);
   for (const path in linksMap) {
     if (prefixedIgnore.includes(path)) {
+      // don't count broken links for ignored pages
       continue;
     }
 
