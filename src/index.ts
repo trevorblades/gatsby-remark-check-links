@@ -37,7 +37,7 @@ function createPathPrefixer(pathPrefix): (url: string) => string {
 export = async function plugin(
   {markdownAST, markdownNode, files, getNode, cache, getCache, pathPrefix},
   {exceptions = [], ignore = []} = {}
-): Promise<object> {
+): Promise<Parent> {
   if (!markdownNode.fields) {
     // let the file pass if it has no fields
     return markdownAST;
@@ -113,27 +113,25 @@ export = async function plugin(
 
     const linksForPath = linksMap[path];
     if (linksForPath.length) {
-      const brokenLinks = linksForPath.filter(
-        (link: string): boolean => {
-          // return true for broken links, false = pass
-          const {key, hasHash, hashIndex} = getHeadingsMapKey(link, path);
-          if (prefixedExceptions.includes(key)) {
-            return false;
-          }
-
-          const headings = headingsMap[key];
-          if (headings) {
-            if (hasHash) {
-              const id = link.slice(hashIndex + 1);
-              return !prefixedExceptions.includes(id) && !headings.includes(id);
-            }
-
-            return false;
-          }
-
-          return true;
+      const brokenLinks = linksForPath.filter((link: string): boolean => {
+        // return true for broken links, false = pass
+        const {key, hasHash, hashIndex} = getHeadingsMapKey(link, path);
+        if (prefixedExceptions.includes(key)) {
+          return false;
         }
-      );
+
+        const headings = headingsMap[key];
+        if (headings) {
+          if (hasHash) {
+            const id = link.slice(hashIndex + 1);
+            return !prefixedExceptions.includes(id) && !headings.includes(id);
+          }
+
+          return false;
+        }
+
+        return true;
+      });
 
       const brokenLinkCount = brokenLinks.length;
       totalBrokenLinks += brokenLinkCount;
