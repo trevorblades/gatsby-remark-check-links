@@ -6,21 +6,26 @@
   "repository": "trevorblades/gatsby-remark-check-links",
   "license": "MIT",
   "main": "index.js",
+  "scripts": {
+    "pretest": "eslint src/*",
+    "test": "jest",
+    "prepare": "tsc"
+  },
   "keywords": [
     "gatsby",
     "gatsby-plugin"
   ],
-  "eslintConfig": {
-    "extends": "@trevorblades"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "dependencies": {
     "unist-util-visit": "^1.4.1"
   },
   "devDependencies": {
-    "@trevorblades/eslint-config": "^6.22.1",
-    "eslint": "^5.16.0"
+    "@trevorblades/eslint-config": "^7.0.0",
+    "@types/mdast": "^3.0.2",
+    "eslint": "^5.16.0",
+    "eslint-import-resolver-typescript": "github:JounQin/eslint-import-resolver-typescript#feat/resolve_dts",
+    "gatsby": "^2.13.67",
+    "jest": "^24.9.0",
+    "ts-jest": "^24.0.2",
+    "typescript": "^3.5.3"
   }
 }

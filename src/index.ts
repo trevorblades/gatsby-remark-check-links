@@ -1,10 +1,18 @@
-const visit = require('unist-util-visit');
+import * as visit from 'unist-util-visit';
+import {Link, Parent} from 'mdast';
+import {Node} from 'gatsby';
 
-function getCacheKey(node) {
+function getCacheKey(node: Node): string {
   return `remark-check-links-${node.id}-${node.internal.contentDigest}`;
 }
 
-function getHeadingsMapKey(link, path) {
+interface HeadingsMapKey {
+  key: string;
+  hasHash: boolean;
+  hashIndex: number;
+}
+
+function getHeadingsMapKey(link: string, path: string): HeadingsMapKey {
   let key = link;
   const hashIndex = link.indexOf('#');
   const hasHash = hashIndex !== -1;
@@ -19,17 +27,17 @@ function getHeadingsMapKey(link, path) {
   };
 }
 
-function createPathPrefixer(pathPrefix) {
-  return function withPathPrefix(url) {
+function createPathPrefixer(pathPrefix): (url: string) => string {
+  return function withPathPrefix(url): string {
     const prefixed = pathPrefix + url;
     return prefixed.replace(/\/\//, '/');
   };
 }
 
-module.exports = async (
+export = async function plugin(
   {markdownAST, markdownNode, files, getNode, cache, getCache, pathPrefix},
   {exceptions = [], ignore = []} = {}
-) => {
+): Promise<object> {
   if (!markdownNode.fields) {
     // let the file pass if it has no fields
     return markdownAST;
@@ -38,7 +46,7 @@ module.exports = async (
   const links = [];
   const headings = [];
 
-  visit(markdownAST, 'link', (node, index, parent) => {
+  function visitor(node: Link, index: number, parent: Parent): void {
     if (parent.type === 'heading') {
       headings.push(parent.data.id);
       return;
@@ -47,7 +55,9 @@ module.exports = async (
     if (node.url.startsWith('#') || /^\.{0,2}\//.test(node.url)) {
       links.push(node.url);
     }
-  });
+  }
+
+  visit(markdownAST, 'link', visitor);
 
   const withPathPrefix = createPathPrefixer(pathPrefix);
   const parent = await getNode(markdownNode.parent);
@@ -103,25 +113,27 @@ module.exports = async (
 
     const linksForPath = linksMap[path];
     if (linksForPath.length) {
-      const brokenLinks = linksForPath.filter(link => {
-        // return true for broken links, false = pass
-        const {key, hasHash, hashIndex} = getHeadingsMapKey(link, path);
-        if (prefixedExceptions.includes(key)) {
-          return false;
-        }
-
-        const headings = headingsMap[key];
-        if (headings) {
-          if (hasHash) {
-            const id = link.slice(hashIndex + 1);
-            return !prefixedExceptions.includes(id) && !headings.includes(id);
+      const brokenLinks = linksForPath.filter(
+        (link: string): boolean => {
+          // return true for broken links, false = pass
+          const {key, hasHash, hashIndex} = getHeadingsMapKey(link, path);
+          if (prefixedExceptions.includes(key)) {
+            return false;
           }
 
-          return false;
-        }
+          const headings = headingsMap[key];
+          if (headings) {
+            if (hasHash) {
+              const id = link.slice(hashIndex + 1);
+              return !prefixedExceptions.includes(id) && !headings.includes(id);
+            }
 
-        return true;
-      });
+            return false;
+          }
+
+          return true;
+        }
+      );
 
       const brokenLinkCount = brokenLinks.length;
       totalBrokenLinks += brokenLinkCount;
