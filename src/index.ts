@@ -36,7 +36,7 @@ function createPathPrefixer(pathPrefix): (url: string) => string {
 
 export = async function plugin(
   {markdownAST, markdownNode, files, getNode, cache, getCache, pathPrefix},
-  {exceptions = [], ignore = []} = {}
+  {exceptions = [], ignore = [], verbose = true} = {}
 ): Promise<Parent> {
   if (!markdownNode.fields) {
     // let the file pass if it has no fields
@@ -135,7 +135,7 @@ export = async function plugin(
 
       const brokenLinkCount = brokenLinks.length;
       totalBrokenLinks += brokenLinkCount;
-      if (brokenLinkCount) {
+      if (brokenLinkCount && verbose) {
         console.warn(`${brokenLinkCount} broken links found on ${path}`);
         for (const link of brokenLinks) {
           console.warn(`- ${link}`);
@@ -152,8 +152,10 @@ export = async function plugin(
       throw new Error(message);
     }
 
-    console.error(message);
-  } else {
+    if (verbose) {
+      console.error(message);
+    }
+  } else if (verbose) {
     console.info('No broken links found');
   }
 
