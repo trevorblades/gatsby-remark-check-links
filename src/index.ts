@@ -1,10 +1,18 @@
-const visit = require('unist-util-visit');
+import * as visit from 'unist-util-visit';
+import {Link, Parent} from 'mdast';
+import {Node} from 'gatsby';
 
-function getCacheKey(node) {
+function getCacheKey(node: Node): string {
   return `remark-check-links-${node.id}-${node.internal.contentDigest}`;
 }
 
-function getHeadingsMapKey(link, path) {
+interface HeadingsMapKey {
+  key: string;
+  hasHash: boolean;
+  hashIndex: number;
+}
+
+function getHeadingsMapKey(link: string, path: string): HeadingsMapKey {
   let key = link;
   const hashIndex = link.indexOf('#');
   const hasHash = hashIndex !== -1;
@@ -19,17 +27,17 @@ function getHeadingsMapKey(link, path) {
   };
 }
 
-function createPathPrefixer(pathPrefix) {
-  return function withPathPrefix(url) {
+function createPathPrefixer(pathPrefix): (url: string) => string {
+  return function withPathPrefix(url): string {
     const prefixed = pathPrefix + url;
     return prefixed.replace(/\/\//, '/');
   };
 }
 
-module.exports = async (
+export = async function plugin(
   {markdownAST, markdownNode, files, getNode, cache, getCache, pathPrefix},
-  {exceptions = [], ignore = []} = {}
-) => {
+  {exceptions = [], ignore = [], verbose = true} = {}
+): Promise<Parent> {
   if (!markdownNode.fields) {
     // let the file pass if it has no fields
     return markdownAST;
@@ -38,7 +46,7 @@ module.exports = async (
   const links = [];
   const headings = [];
 
-  visit(markdownAST, 'link', (node, index, parent) => {
+  function visitor(node: Link, index: number, parent: Parent): void {
     if (parent.type === 'heading') {
       headings.push(parent.data.id);
       return;
@@ -47,14 +55,18 @@ module.exports = async (
     if (node.url.startsWith('#') || /^\.{0,2}\//.test(node.url)) {
       links.push(node.url);
     }
-  });
+  }
+
+  visit(markdownAST, 'link', visitor);
 
   const withPathPrefix = createPathPrefixer(pathPrefix);
   const parent = await getNode(markdownNode.parent);
+  const setAt = Date.now();
   cache.set(getCacheKey(parent), {
     path: withPathPrefix(markdownNode.fields.slug),
     links,
-    headings
+    headings,
+    setAt
   });
 
   // wait to see if all of the Markdown and MDX has been visited
@@ -66,25 +78,20 @@ module.exports = async (
       file.relativePath !== 'docs/README.md'
     ) {
       const key = getCacheKey(file);
-      const visited = await cache.get(key);
 
-      if (visited) {
-        linksMap[visited.path] = visited.links;
-        headingsMap[visited.path] = visited.headings;
-        continue;
-      }
-
-      if (getCache) {
+      let visited = await cache.get(key);
+      if (!visited && getCache) {
         // the cache provided to `gatsby-mdx` has its own namespace, and it
         // doesn't have access to `getCache`, so we have to check to see if
         // those files have been visited here.
         const mdxCache = getCache('gatsby-plugin-mdx');
-        const mdxVisited = await mdxCache.get(key);
-        if (mdxVisited) {
-          linksMap[mdxVisited.path] = mdxVisited.links;
-          headingsMap[mdxVisited.path] = mdxVisited.headings;
-          continue;
-        }
+        visited = await mdxCache.get(key);
+      }
+
+      if (visited && setAt <= visited.setAt) {
+        linksMap[visited.path] = visited.links;
+        headingsMap[visited.path] = visited.headings;
+        continue;
       }
 
       // don't continue if a page hasn't been visited yet
@@ -103,7 +110,7 @@ module.exports = async (
 
     const linksForPath = linksMap[path];
     if (linksForPath.length) {
-      const brokenLinks = linksForPath.filter(link => {
+      const brokenLinks = linksForPath.filter((link: string): boolean => {
         // return true for broken links, false = pass
         const {key, hasHash, hashIndex} = getHeadingsMapKey(link, path);
         if (prefixedExceptions.includes(key)) {
@@ -125,7 +132,7 @@ module.exports = async (
 
       const brokenLinkCount = brokenLinks.length;
       totalBrokenLinks += brokenLinkCount;
-      if (brokenLinkCount) {
+      if (brokenLinkCount && verbose) {
         console.warn(`${brokenLinkCount} broken links found on ${path}`);
         for (const link of brokenLinks) {
           console.warn(`- ${link}`);
@@ -142,8 +149,10 @@ module.exports = async (
       throw new Error(message);
     }
 
-    console.error(message);
-  } else {
+    if (verbose) {
+      console.error(message);
+    }
+  } else if (verbose) {
     console.info('No broken links found');
   }
 

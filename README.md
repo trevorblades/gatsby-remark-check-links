@@ -15,7 +15,7 @@ It will provide output about the broken links in the terminal when your site bui
 ## Installation
 
 ```bash
-npm install gatsby-remark-check-links
+$ npm install gatsby-remark-check-links
 ```
 
 ## Usage
@@ -94,6 +94,10 @@ Paths passed to `ignore` will **not** have their content checked for broken link
 ### `exceptions`
 
 Paths passed to `exceptions` will ensure that any links from other pages to these paths or hashes within them will **not** count as broken. This is useful if the linked page is created programatically, or if the final rendered version of a markdown page contains headings that aren't available during the MDAST-transforming stage of the build (it could be using some fancy MDX component, for example.)
+
+### `verbose`
+
+Disable logs and warnings in your console by passing `false` to the `verbose` option, which is `true` by default.
 
 ## Caveats
 

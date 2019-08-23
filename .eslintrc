@@ -1,0 +1,10 @@
+{
+  "extends": "@trevorblades/eslint-config/typescript",
+  "settings": {
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true
+      }
+    }
+  }
+}
