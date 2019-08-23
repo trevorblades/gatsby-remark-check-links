@@ -1,6 +1,6 @@
 {
   "name": "gatsby-remark-check-links",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Detects broken links and heading hashes in markdown",
   "author": "Trevor Blades <tdblades@gmail.com>",
   "repository": "trevorblades/gatsby-remark-check-links",
