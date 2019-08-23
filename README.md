@@ -1,6 +1,6 @@
 # gatsby-remark-check-links
 
-A sub-plugin for `gatsby-transformer-remark` that detects broken links to pages and headings among your website's markdown pages. This is useful if your page slugs or heading IDs are being automatically generated. Heading IDs might be created by [`gatsby-remark-autolink-headers`](https://www.gatsbyjs.org/packages/gatsby-remark-autolink-headers/), for example.
+A [Gatbsy Remark](https://www.gatsbyjs.org/packages/gatsby-transformer-remark/) plugin that detects broken links to pages and headings among your website's markdown pages. This is useful if your page slugs or heading IDs are being automatically generated. Heading IDs might be created by [`gatsby-remark-autolink-headers`](https://www.gatsbyjs.org/packages/gatsby-remark-autolink-headers/), for example.
 
 It will provide output about the broken links in the terminal when your site builds and as you make changes to pages. In production, your build will break if there are any broken links.
 
