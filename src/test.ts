@@ -1,10 +1,39 @@
 /* eslint-env jest */
 import plugin = require('.');
+import Cache = require('gatsby/dist/utils/cache');
+import getCache = require('gatsby/dist/utils/get-cache');
+import {Node} from 'gatsby';
+import {Parent} from 'mdast';
+import {createContentDigest} from 'gatsby/utils';
 import {heading, link, paragraph, root, text} from 'mdast-builder';
 
-beforeAll((): void => {
-  process.env.NODE_ENV = 'production';
-});
+const cache = new Cache().init();
+
+const files = [
+  {
+    id: 'foo',
+    extension: 'md',
+    internal: {
+      contentDigest: createContentDigest(Math.random())
+    }
+  },
+  {
+    id: 'bar',
+    extension: 'md',
+    internal: {
+      contentDigest: createContentDigest(Math.random())
+    }
+  }
+];
+
+const filesById = files.reduce(
+  (acc, file): object => ({...acc, [file.id]: file}),
+  {}
+);
+
+async function getNode(id: string): Promise<Node> {
+  return new Promise((resolve): void => resolve(filesById[id]));
+}
 
 const nodes = [
   {
@@ -12,12 +41,12 @@ const nodes = [
       heading(2, text('this is a test')),
       paragraph([
         text('please click '),
-        link('/page2', 'page 2', text('this link'))
+        // incorrect link here
+        link('/page3', 'page 2', text('this link'))
       ])
     ]),
     markdownNode: {
-      id: 'foo',
-      contentDigest: '1',
+      parent: 'foo',
       fields: {
         slug: '/'
       }
@@ -29,8 +58,7 @@ const nodes = [
       paragraph(link('/', 'page 2', text('back to home')))
     ]),
     markdownNode: {
-      id: 'bar',
-      contentDigest: '2',
+      parent: 'bar',
       fields: {
         slug: '/page2'
       }
@@ -38,20 +66,31 @@ const nodes = [
   }
 ];
 
-test('throws on broken links', (): void => {
-  expect(
-    async (): Promise<void> => {
-      for (const {markdownAST, markdownNode} of nodes) {
-        await plugin({
-          markdownAST,
-          markdownNode,
-          files: [],
-          getNode: () => {},
-          cache: {},
-          getCache: () => {},
-          pathPrefix: ''
-        });
-      }
-    }
-  ).toThrow();
+async function visitNodes(nodes): Promise<Parent[]> {
+  return Promise.all(
+    nodes.map(
+      ({markdownAST, markdownNode}): Promise<Parent> =>
+        plugin(
+          {
+            markdownAST,
+            markdownNode,
+            files,
+            getNode,
+            cache,
+            getCache,
+            pathPrefix: ''
+          },
+          {verbose: false}
+        )
+    )
+  );
+}
+
+beforeAll((): void => {
+  process.env.NODE_ENV = 'production';
+});
+
+test('throws on broken links', async (): Promise<void> => {
+  expect.assertions(1);
+  await expect(visitNodes(nodes)).rejects.toThrow();
 });
