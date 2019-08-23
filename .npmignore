@@ -1,4 +1,6 @@
 src
 jest.config.js
-.eslintrc
 tsconfig.json
+.eslintrc
+.cache
+.github

@@ -88,7 +88,7 @@ export = async function plugin(
         visited = await mdxCache.get(key);
       }
 
-      if (visited && setAt <= visited.setAt) {
+      if (visited && setAt >= visited.setAt) {
         linksMap[visited.path] = visited.links;
         headingsMap[visited.path] = visited.headings;
         continue;
