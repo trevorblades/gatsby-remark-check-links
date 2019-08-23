@@ -9,6 +9,7 @@ It will provide output about the broken links in the terminal when your site bui
 - [Options](#options)
   - [`ignore`](#ignore)
   - [`exceptions`](#exceptions)
+  - [`verbose`](#verbose)
 - [Caveats](#caveats)
 - [License](#license)
 
