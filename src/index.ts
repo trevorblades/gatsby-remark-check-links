@@ -61,10 +61,12 @@ export = async function plugin(
 
   const withPathPrefix = createPathPrefixer(pathPrefix);
   const parent = await getNode(markdownNode.parent);
+  const setAt = Date.now();
   cache.set(getCacheKey(parent), {
     path: withPathPrefix(markdownNode.fields.slug),
     links,
-    headings
+    headings,
+    setAt
   });
 
   // wait to see if all of the Markdown and MDX has been visited
@@ -76,25 +78,20 @@ export = async function plugin(
       file.relativePath !== 'docs/README.md'
     ) {
       const key = getCacheKey(file);
-      const visited = await cache.get(key);
 
-      if (visited) {
-        linksMap[visited.path] = visited.links;
-        headingsMap[visited.path] = visited.headings;
-        continue;
-      }
-
-      if (getCache) {
+      let visited = await cache.get(key);
+      if (!visited && getCache) {
         // the cache provided to `gatsby-mdx` has its own namespace, and it
         // doesn't have access to `getCache`, so we have to check to see if
         // those files have been visited here.
         const mdxCache = getCache('gatsby-plugin-mdx');
-        const mdxVisited = await mdxCache.get(key);
-        if (mdxVisited) {
-          linksMap[mdxVisited.path] = mdxVisited.links;
-          headingsMap[mdxVisited.path] = mdxVisited.headings;
-          continue;
-        }
+        visited = await mdxCache.get(key);
+      }
+
+      if (visited && setAt <= visited.setAt) {
+        linksMap[visited.path] = visited.links;
+        headingsMap[visited.path] = visited.headings;
+        continue;
       }
 
       // don't continue if a page hasn't been visited yet
