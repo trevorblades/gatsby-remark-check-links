@@ -104,12 +104,12 @@ Disable logs and warnings in your console by passing `false` to the `verbose` op
 
 ## Caveats
 
-Once a markdown page has been cached by Gatsby, you won't see any output about its broken links until the file changes or your cache gets cleared. If you want to see link check output for *all* files every time you run `npm start`, you can set up your npm script like this:
+Once a markdown page has been cached by Gatsby, you won't see any output about its broken links until the file changes or your cache gets cleared. If you want to see link check output for *all* files every time you run `npm start`, you can set up a `prestart` npm script that removes your Gatsby cache directory:
 
 ```json
 {
   "scripts": {
-    "start": "rm -rf .cache && gatsby develop"
+    "prestart": "rm -rf .cache"
   }
 }
 ```
