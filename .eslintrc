@@ -2,7 +2,7 @@
   "extends": "@trevorblades/eslint-config/typescript",
   "settings": {
     "import/resolver": {
-      "typescript": {
+      "ts": {
         "alwaysTryTypes": true
       }
     }

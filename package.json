@@ -23,7 +23,7 @@
     "@types/jest": "^24.0.18",
     "@types/mdast": "^3.0.2",
     "eslint": "^5.16.0",
-    "eslint-import-resolver-typescript": "github:JounQin/eslint-import-resolver-typescript#feat/resolve_dts",
+    "eslint-import-resolver-ts": "^0.3.0",
     "gatsby": "^2.13.67",
     "jest": "^24.9.0",
     "mdast-builder": "^1.1.1",
