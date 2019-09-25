@@ -109,7 +109,7 @@ Once a markdown page has been cached by Gatsby, you won't see any output about i
 ```json
 {
   "scripts": {
-    "prestart": "rm -rf .cache"
+    "prestart": "gatsby clean"
   }
 }
 ```
