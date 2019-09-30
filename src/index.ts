@@ -53,7 +53,10 @@ export = async function plugin(
     }
 
     if (node.url.startsWith('#') || /^\.{0,2}\//.test(node.url)) {
-      links.push(node);
+      links.push({
+        ...node,
+        frontmatter: markdownNode.frontmatter
+      });
     }
   }
 
@@ -138,9 +141,15 @@ export = async function plugin(
           let prefix = '-';
           if (link.position) {
             const {line, column} = link.position.start;
+
+            // account for the offset that frontmatter adds
+            const offset = link.frontmatter
+              ? Object.keys(link.frontmatter).length
+              : 0;
+
             prefix = [
-              String(line).padStart(3, ' '),
-              String(column).padEnd(3, ' ')
+              String(line + offset).padStart(3, ' '),
+              String(column).padEnd(4, ' ')
             ].join(':');
           }
           console.warn(`${prefix} ${link.url}`);
