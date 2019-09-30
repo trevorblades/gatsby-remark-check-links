@@ -144,7 +144,7 @@ export = async function plugin(
 
             // account for the offset that frontmatter adds
             const offset = link.frontmatter
-              ? Object.keys(link.frontmatter).length
+              ? Object.keys(link.frontmatter).length + 2
               : 0;
 
             prefix = [
