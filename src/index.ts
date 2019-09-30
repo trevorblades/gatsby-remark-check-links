@@ -53,7 +53,7 @@ export = async function plugin(
     }
 
     if (node.url.startsWith('#') || /^\.{0,2}\//.test(node.url)) {
-      links.push(node.url);
+      links.push(node);
     }
   }
 
@@ -110,9 +110,9 @@ export = async function plugin(
 
     const linksForPath = linksMap[path];
     if (linksForPath.length) {
-      const brokenLinks = linksForPath.filter((link: string): boolean => {
+      const brokenLinks = linksForPath.filter((link: Link): boolean => {
         // return true for broken links, false = pass
-        const {key, hasHash, hashIndex} = getHeadingsMapKey(link, path);
+        const {key, hasHash, hashIndex} = getHeadingsMapKey(link.url, path);
         if (prefixedExceptions.includes(key)) {
           return false;
         }
@@ -120,7 +120,7 @@ export = async function plugin(
         const headings = headingsMap[key];
         if (headings) {
           if (hasHash) {
-            const id = link.slice(hashIndex + 1);
+            const id = link.url.slice(hashIndex + 1);
             return !prefixedExceptions.includes(id) && !headings.includes(id);
           }
 
@@ -135,7 +135,15 @@ export = async function plugin(
       if (brokenLinkCount && verbose) {
         console.warn(`${brokenLinkCount} broken links found on ${path}`);
         for (const link of brokenLinks) {
-          console.warn(`- ${link}`);
+          let prefix = '-';
+          if (link.position) {
+            const {line, column} = link.position.start;
+            prefix = [
+              String(line).padStart(3, ' '),
+              String(column).padEnd(3, ' ')
+            ].join(':');
+          }
+          console.warn(`${prefix} ${link.url}`);
         }
         console.log('');
       }

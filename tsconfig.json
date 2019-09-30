@@ -1,6 +1,9 @@
 {
   "compilerOptions": {
-    "outDir": "./"
+    "outDir": "./",
+    "lib": [
+      "es2017"
+    ]
   },
   "files": [
     "src/index.ts"
