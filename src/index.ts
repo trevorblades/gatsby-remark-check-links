@@ -47,7 +47,7 @@ export = async function plugin(
   const headings = [];
 
   function visitor(node: Link, index: number, parent: Parent): void {
-    if (parent.type === 'heading') {
+    if (parent.type === 'heading' && parent.data) {
       headings.push(parent.data.id);
       return;
     }
