@@ -1,4 +1,5 @@
-import * as visit from 'unist-util-visit';
+import micromatch from 'micromatch';
+import visit from 'unist-util-visit';
 import {Link, Parent} from 'mdast';
 import {Node} from 'gatsby';
 
@@ -106,7 +107,7 @@ export = async function plugin(
   const prefixedIgnore = ignore.map(withPathPrefix);
   const prefixedExceptions = exceptions.map(withPathPrefix);
   for (const path in linksMap) {
-    if (prefixedIgnore.includes(path)) {
+    if (micromatch.isMatch(path, prefixedIgnore)) {
       // don't count broken links for ignored pages
       continue;
     }
@@ -116,7 +117,7 @@ export = async function plugin(
       const brokenLinks = linksForPath.filter((link: Link): boolean => {
         // return true for broken links, false = pass
         const {key, hasHash, hashIndex} = getHeadingsMapKey(link.url, path);
-        if (prefixedExceptions.includes(key)) {
+        if (micromatch.isMatch(key, prefixedExceptions)) {
           return false;
         }
 

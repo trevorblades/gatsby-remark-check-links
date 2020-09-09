@@ -16,12 +16,14 @@
     "gatsby-plugin"
   ],
   "dependencies": {
+    "micromatch": "^4.0.2",
     "unist-util-visit": "^1.4.1"
   },
   "devDependencies": {
     "@trevorblades/eslint-config": "^7.0.0",
     "@types/jest": "^24.0.18",
     "@types/mdast": "^3.0.2",
+    "@types/micromatch": "^4.0.1",
     "eslint": "^5.16.0",
     "eslint-import-resolver-ts": "^0.3.0",
     "gatsby": "^2.13.67",
