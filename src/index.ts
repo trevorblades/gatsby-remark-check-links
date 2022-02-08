@@ -36,7 +36,7 @@ function createPathPrefixer(pathPrefix): (url: string) => string {
 
 export = async function plugin(
   {markdownAST, markdownNode, files, getNode, cache, getCache, pathPrefix},
-  {exceptions = [], ignore = [], verbose = true} = {}
+  {exceptions = [], ignore = [], verbose = true, critical = true} = {}
 ): Promise<Parent> {
   if (!markdownNode.fields) {
     // let the file pass if it has no fields
@@ -161,7 +161,7 @@ export = async function plugin(
 
   if (totalBrokenLinks) {
     const message = `${totalBrokenLinks} broken links found`;
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === 'production' && critical) {
       // break builds with broken links before they get deployed for reals
       throw new Error(message);
     }
